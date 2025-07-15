@@ -1,0 +1,8 @@
+
+POST http://localhost:3333/create/app HTTP/1.1
+Content-Type: application/json
+
+{
+	"name_app":"sujex",
+	"onwer_email":"igor@gmail.com"
+}
