@@ -1,0 +1,329 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "API de Autenticação",
+    "description": "API que fornece autenticação para frontend, baseada em apps e usuários admin/clientes.",
+    "version": "1.0.0"
+  },
+  "host": "localhost:3000",
+  "basePath": "/",
+  "schemes": ["http"],
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "Ponto de entrada da API",
+        "description": "Retorna uma mensagem de boas-vindas.",
+        "responses": {
+          "200": {
+            "description": "Mensagem de boas-vindas",
+            "schema": {
+              "type": "string",
+              "example": "Welcome to the API!"
+            }
+          }
+        }
+      }
+    },
+    "/create/app": {
+      "post": {
+        "summary": "Cria um novo app provider",
+        "description": "Cria um app associado a um admin válido.",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": ["name_app", "onwer_email"],
+              "properties": {
+                "name_app": { "type": "string", "example": "MeuApp" },
+                "onwer_email": { "type": "string", "example": "admin@example.com" }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "App criado com sucesso",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": { "type": "string", "example": "success" },
+                "message": { "type": "string", "example": "App provider created successfully" },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string", "example": "ckxyz123" },
+                    "name_app": { "type": "string", "example": "MeuApp" },
+                    "public_key": { "type": "string", "example": "public_123" },
+                    "secret_key": { "type": "string", "example": "secret_123" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Falha na criação do app" }
+        }
+      }
+    },
+    "/delete/app": {
+      "delete": {
+        "summary": "Remove um app existente",
+        "description": "Deleta um app específico. Necessita usuário admin válido.",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "app-id",
+            "required": true,
+            "type": "string",
+            "description": "ID do app a ser removido"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "App deletado com sucesso",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": { "type": "string", "example": "success" },
+                "message": { "type": "string", "example": "App provider delete successfully" },
+                "data": { "type": "object" }
+              }
+            }
+          },
+          "404": { "description": "App não encontrado" }
+        }
+      }
+    },
+    "/auth/create": {
+      "post": {
+        "summary": "Cria um usuário admin",
+        "description": "Cria administradores da plataforma.",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": ["name", "email", "password"],
+              "properties": {
+                "name": { "type": "string", "example": "AdminUser" },
+                "email": { "type": "string", "example": "admin@example.com" },
+                "password": { "type": "string", "example": "12345678" }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuário admin criado com sucesso",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": { "type": "string", "example": "success" },
+                "message": { "type": "string", "example": "User created successfully" },
+                "token": { "type": "string", "example": "jwt_token_here" }
+              }
+            }
+          },
+          "400": { "description": "Usuário já existe ou dados inválidos" }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Login de usuário admin",
+        "description": "Autentica administradores e retorna token JWT.",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": ["email", "password"],
+              "properties": {
+                "email": { "type": "string", "example": "admin@example.com" },
+                "password": { "type": "string", "example": "12345678" }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login bem-sucedido",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": { "type": "string", "example": "success" },
+                "message": { "type": "string", "example": "Login successful" },
+                "token": { "type": "string", "example": "jwt_token_here" }
+              }
+            }
+          },
+          "401": { "description": "Credenciais inválidas" }
+        }
+      }
+    },
+    "/token": {
+      "get": {
+        "summary": "Obter token admin",
+        "description": "Retorna informações do usuário admin e apps associados.",
+        "responses": {
+          "200": {
+            "description": "Token retornado com sucesso",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": { "type": "string", "example": "success" },
+                "message": { "type": "string", "example": "Login successful" },
+                "token": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string", "example": "admin123" },
+                    "name": { "type": "string", "example": "AdminUser" },
+                    "email": { "type": "string", "example": "admin@example.com" },
+                    "email_verified": { "type": "boolean", "example": true },
+                    "is_active": { "type": "boolean", "example": true },
+                    "last_login_at": { "type": "string", "example": "2025-08-19T11:00:00Z" },
+                    "createdAt": { "type": "string", "example": "2025-01-01T12:00:00Z" },
+                    "updatedAt": { "type": "string", "example": "2025-08-18T12:00:00Z" },
+                    "app_provider": { "type": "array", "items": { "type": "object" } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/create": {
+      "post": {
+        "summary": "Cria um usuário cliente",
+        "description": "Cria usuários associados a um app válido.",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "app-id",
+            "required": true,
+            "type": "string",
+            "description": "ID do app associado"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": ["name", "email", "password"],
+              "properties": {
+                "name": { "type": "string", "example": "Cliente1" },
+                "email": { "type": "string", "example": "cliente@example.com" },
+                "password": { "type": "string", "example": "12345678" }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuário cliente criado com sucesso",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": { "type": "string", "example": "success" },
+                "message": { "type": "string", "example": "User created successfully" },
+                "token": { "type": "string", "example": "jwt_token_here" }
+              }
+            }
+          },
+          "400": { "description": "Usuário já existe ou app inválido" }
+        }
+      }
+    },
+    "/v1/auth/login": {
+      "post": {
+        "summary": "Login de usuário cliente",
+        "description": "Autentica usuários clientes e retorna token JWT.",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "app-id",
+            "required": true,
+            "type": "string",
+            "description": "ID do app associado"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": ["email", "password"],
+              "properties": {
+                "email": { "type": "string", "example": "cliente@example.com" },
+                "password": { "type": "string", "example": "12345678" }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login bem-sucedido",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": { "type": "string", "example": "success" },
+                "message": { "type": "string", "example": "Login successful" },
+                "token": { "type": "string", "example": "jwt_token_here" }
+              }
+            }
+          },
+          "401": { "description": "Credenciais inválidas" }
+        }
+      }
+    },
+    "/v1/token": {
+      "get": {
+        "summary": "Obter token cliente",
+        "description": "Retorna informações do usuário cliente.",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "app-id",
+            "required": true,
+            "type": "string",
+            "description": "ID do app associado"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Token retornado com sucesso",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": { "type": "string", "example": "success" },
+                "message": { "type": "string", "example": "Login successful" },
+                "token": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string", "example": "user123" },
+                    "name": { "type": "string", "example": "Cliente1" },
+                    "email": { "type": "string", "example": "cliente@example.com" },
+                    "email_verified": { "type": "boolean", "example": true },
+                    "is_active": { "type": "boolean", "example": true },
+                    "last_login_at": { "type": "string", "example": "2025-08-19T11:00:00Z" },
+                    "createdAt": { "type": "string", "example": "2025-01-01T12:00:00Z" },
+                    "updatedAt": { "type": "string", "example": "2025-08-18T12:00:00Z" },
+                    "app_provider": { "type": "object" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

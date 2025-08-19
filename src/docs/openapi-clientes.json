@@ -1,0 +1,213 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "API de Autenticação - Cliente",
+    "version": "1.0.0",
+    "description": "Documentação para clientes integrarem o sistema de autenticação via API. Contém apenas rotas de usuários finais."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Servidor local"
+    }
+  ],
+  "paths": {
+    "/v1/auth/create": {
+      "post": {
+        "summary": "Cria um usuário em um app existente",
+        "description": "Endpoint para criar um usuário final associado a um app. Necessita do header `app-id` válido.",
+        "tags": ["Usuário"],
+        "parameters": [
+          {
+            "name": "app-id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID do app fornecido pelo provedor da API"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Nome completo do usuário"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Email do usuário"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "Senha do usuário (mínimo 8 caracteres)"
+                  }
+                },
+                "required": ["name", "email", "password"]
+              },
+              "example": {
+                "name": "João Silva",
+                "email": "joao@email.com",
+                "password": "SenhaSegura123"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Usuário criado com sucesso",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "success",
+                  "message": "User created successfully",
+                  "token": "jwt_token_aqui"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Faltando app-id no header",
+            "content": {
+              "application/json": {
+                "example": { "error": "Missing or invalid id in headers" }
+              }
+            }
+          },
+          "401": {
+            "description": "App ID inválido",
+            "content": {
+              "application/json": {
+                "example": { "error": "Invalid App Id" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/login": {
+      "post": {
+        "summary": "Login de usuário final",
+        "description": "Autentica um usuário existente e retorna um token JWT. Necessita do header `app-id` válido.",
+        "tags": ["Usuário"],
+        "parameters": [
+          {
+            "name": "app-id",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID do app fornecido pelo provedor da API"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string", "format": "password" }
+                },
+                "required": ["email", "password"]
+              },
+              "example": {
+                "email": "joao@email.com",
+                "password": "SenhaSegura123"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login bem-sucedido",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "success",
+                  "message": "Login successful",
+                  "token": "jwt_token_aqui"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Faltando app-id no header",
+            "content": {
+              "application/json": {
+                "example": { "error": "Missing or invalid id in headers" }
+              }
+            }
+          },
+          "401": {
+            "description": "App ID inválido ou credenciais incorretas",
+            "content": {
+              "application/json": {
+                "example": { "error": "Invalid App Id" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/token": {
+      "get": {
+        "summary": "Retorna informações do usuário autenticado",
+        "description": "Retorna detalhes do usuário logado baseado no token JWT enviado no header Authorization.",
+        "tags": ["Usuário"],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Bearer token JWT obtido no login"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuário autenticado retornado com sucesso",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "success",
+                  "message": "User info retrieved successfully",
+                  "token": {
+                    "id": "user-id",
+                    "name": "João Silva",
+                    "email": "joao@email.com",
+                    "email_verified": true,
+                    "is_active": true,
+                    "last_login_at": "2025-08-19T11:00:00Z",
+                    "createdAt": "2025-08-01T10:00:00Z",
+                    "updatedAt": "2025-08-15T10:00:00Z",
+                    "app_provider": {
+                      "id": "app-id",
+                      "name_app": "Meu App",
+                      "onwer_email": "dono@exemplo.com"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token inválido ou expirado",
+            "content": {
+              "application/json": {
+                "example": { "error": "Unauthorized" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
