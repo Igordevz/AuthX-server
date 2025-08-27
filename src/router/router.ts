@@ -21,7 +21,7 @@ export default async function CreateRouter(app:FastifyInstance) {
   app.delete("/delete/app", { preHandler: VerifyAdminUser }, RemoveApp)
 
   //router admin 
-  app.post("/auth/create",  CreateUserAdmin)
+  app.post("/auth/register",  CreateUserAdmin)
   app.post("/auth/login", LoginAdmin)
   app.get("/token", GetTokenAdmin)
 
