@@ -1,59 +1,52 @@
 import type { FastifyRequest } from "fastify";
-import { z } from "zod"
 import jwt from "jsonwebtoken";
-import { jwt_secret } from "../../../config/jwt";
 import { prisma } from "../../../config/prisma";
-export default async function GetTokenAdmin(req:FastifyRequest) {
+import { jwt_secret } from "../../../config/jwt";
 
-  const token :any = req.headers["jwt"];
+export default async function GetTokenAdmin(req: FastifyRequest) {
+  const token: any = req.headers["jwt"];
 
-  const descryptToken:any = jwt.verify(token, jwt_secret())
+  if (!token || typeof token !== "string") {
+    throw new Error("Token not provided or invalid");
+  }
 
-  if(!descryptToken) {
-    throw new Error("Invalid token")
+  let decodedToken: any;
+  try {
+    decodedToken = jwt.verify(token, jwt_secret());
+  } catch (err) {
+    throw new Error("Invalid or expired token");
   }
 
   const getUser = await prisma.admin.findUnique({
-    where: {
-      id: descryptToken?.userId 
-    },
+    where: { id: decodedToken.userId },
     select: {
       id: true,
       name: true,
-      createdAt: true,
       email: true,
       email_verified: true,
-      is_active: true, 
+      is_active: true,
       last_login_at: true,
+      createdAt: true,
       updatedAt: true,
-      password_hash: true,
-      app_provider: {
-        include: {
-          users: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              email_verified: true,
-              is_active: true,
-              last_login_at: true,
-              createdAt: true,
-              updatedAt: true
-            }
-          }
-        }
-      }
-    }
-  })
+   
+      app_providers: {
+        select: {
+          id: true,
+          name_app: true,
+          public_key: true,
+          createdAt: true,
+        },
+      },
+    },
+  });
 
-  if(!getUser) {
-    throw new Error("User not found")
+  if (!getUser) {
+    throw new Error("User not found");
   }
-  
+
   return {
     status: "success",
     message: "Login successful",
-    token: getUser
-  };  
-
+    data: getUser,
+  };
 }

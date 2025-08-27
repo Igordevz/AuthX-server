@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,31 +8,32 @@ datasource db {
 }
 
 model admin {
-  id                       String        @unique @default(uuid())
-  createdAt                DateTime      @default(now())
-  updatedAt                DateTime      @updatedAt()
-  name                     String
-  email                    String        @unique
-  password_hash            String
-  is_active                Boolean       @default(true)
-  email_verification_token String?
-  last_login_at            DateTime?
-  email_verified           Boolean       @default(false)
-  app_provider             app_provider? @relation(fields: [app_providerId], references: [id])
-  app_providerId           String?
+  id             String    @id @default(uuid())
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt()
+  name           String
+  email          String    @unique
+  password_hash  String
+  is_active      Boolean   @default(true)
+  email_verified Boolean   @default(false)
+  last_login_at  DateTime?
+
+  app_providers app_provider[] // 1:N, um admin pode ter vários apps
 }
 
 model app_provider {
-  id          String      @id @default(cuid())
-  public_key  String      @unique
-  secret_key  String      @unique
+  id          String   @id @default(cuid())
+  public_key  String   @unique
+  secret_key  String   @unique
   name_app    String
-  onwer_email String
-  createdAt   DateTime    @default(now())
-  count_usage Int         @default(0)
-  users       users_app[]
-  userEmail   String?
-  admin       admin[]
+  owner_email String
+  createdAt   DateTime @default(now())
+  count_usage Int      @default(0)
+
+  adminId String
+  admin   admin  @relation(fields: [adminId], references: [id])
+
+  users users_app[]
 }
 
 model users_app {

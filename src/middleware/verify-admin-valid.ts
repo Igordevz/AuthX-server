@@ -26,8 +26,8 @@ export async function VerifyAdminValid(
       id: descryptToken?.userId,
     },
     include: {
-      app_provider:true
-    }
+      app_providers: true, 
+    },
   });
 
   if(!getUser) {
