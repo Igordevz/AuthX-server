@@ -8,32 +8,31 @@ datasource db {
 }
 
 model admin {
-  id             String    @id @default(uuid())
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt()
+  id             String         @id @default(uuid())
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt()
   name           String
-  email          String    @unique
+  email          String         @unique
   password_hash  String
-  is_active      Boolean   @default(true)
-  email_verified Boolean   @default(false)
+  is_active      Boolean        @default(true)
+  email_verified Boolean        @default(false)
   last_login_at  DateTime?
-
-  app_providers app_provider[] // 1:N, um admin pode ter vários apps
+  app_providers  app_provider[] // 1:N, um admin pode ter vários apps
 }
 
 model app_provider {
-  id          String   @id @default(cuid())
-  public_key  String   @unique
-  secret_key  String   @unique
-  name_app    String
-  owner_email String
-  createdAt   DateTime @default(now())
-  count_usage Int      @default(0)
-
-  adminId String
-  admin   admin  @relation(fields: [adminId], references: [id])
-
-  users users_app[]
+  id            String      @id @default(cuid())
+  public_key    String      @unique
+  secret_key    String      @unique
+  name_app      String
+  owner_email   String
+  createdAt     DateTime    @default(now())
+  count_usage   Int         @default(0)
+  last_reset_at DateTime    @default(now())
+  adminId       String
+  admin         admin       @relation(fields: [adminId], references: [id])
+  api_calls     Int?        @default(0)
+  users         users_app[]
 }
 
 model users_app {

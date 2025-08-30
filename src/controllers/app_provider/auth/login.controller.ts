@@ -4,6 +4,7 @@ import { prisma } from "../../../config/prisma";
 import bcrypt from "bcrypt"
 import jwt  from "jsonwebtoken";
 import { jwt_secret } from "../../../config/jwt";
+import CountRequest from "../../../middleware/features/count-request";
 export default async function LoginUserApp(req:FastifyRequest){
 
   const userSchema = z.object({
@@ -45,7 +46,7 @@ export default async function LoginUserApp(req:FastifyRequest){
     
     data: {
       last_login_at: new Date(),
-      app_provider: {
+      app_providers: {
         connect: {
           id: appId
         }
@@ -57,6 +58,8 @@ export default async function LoginUserApp(req:FastifyRequest){
   const createToken = jwt.sign({ userId: user?.id }, jwt_secret(), {
     expiresIn: "4d",
   });
+
+  await CountRequest(appId, "LOGIN")
 
   return {
 

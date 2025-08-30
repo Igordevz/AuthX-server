@@ -4,6 +4,7 @@ import { prisma } from "../../../config/prisma";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { jwt_secret } from "../../../config/jwt";
+import CountRequest from "../../../middleware/features/count-request";
 export default async function CreateUserApp(req: FastifyRequest) {
 
   const appId:any = req.headers["app-id"];
@@ -61,6 +62,8 @@ export default async function CreateUserApp(req: FastifyRequest) {
   const createToken = jwt.sign({ userId: createUser?.id }, jwt_secret(), {
     expiresIn: "4d",
   });
+
+  await CountRequest(appId, "CREATE");
 
   return {
     status: "success",

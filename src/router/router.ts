@@ -10,6 +10,7 @@ import LoginAdmin from "../controllers/admin/auth/login-admin.controller";
 import GetTokenAdmin from "../controllers/admin/auth/get-token-admin.controller";
 import { VerifyAdminUser } from "../middleware/verify-admin-project";
 import { VerifyAdminValid } from "../middleware/verify-admin-valid";
+import GetData from "../controllers/admin/dashboard/get-data.controller";
 
 export default async function CreateRouter(app:FastifyInstance) {
 
@@ -24,10 +25,12 @@ export default async function CreateRouter(app:FastifyInstance) {
   app.post("/auth/register",  CreateUserAdmin)
   app.post("/auth/login", LoginAdmin)
   app.get("/token", GetTokenAdmin)
+  app.get("/dashboard", GetData)
 
   // router to clientes
   app.post("/v1/auth/create", { preHandler: verifyAppExist },  CreateUserApp)
   app.post("/v1/auth/login", { preHandler: verifyAppExist }, LoginUserApp)
   
   app.get("/v1/token", getToken)
+
 } 

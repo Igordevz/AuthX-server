@@ -3,9 +3,11 @@ import { z } from "zod"
 import jwt from "jsonwebtoken";
 import { jwt_secret } from "../../../config/jwt";
 import { prisma } from "../../../config/prisma";
+import CountRequest from "../../../middleware/features/count-request";
 export default async function getToken(req:FastifyRequest) {
 
   const token :any = req.headers["jwt"];
+  const appId:any = req.headers["app-id"];
 
   const descryptToken:any = jwt.verify(token, jwt_secret())
 
@@ -14,7 +16,7 @@ export default async function getToken(req:FastifyRequest) {
   }
 
   
-  const getUser = await prisma.admin.findUnique({
+  const getUser = await prisma.users_app.findUnique({
     where: {
       id: descryptToken?.userId 
     },
@@ -28,7 +30,6 @@ export default async function getToken(req:FastifyRequest) {
       last_login_at: true,
       updatedAt: true,
       password_hash: true,
-      app_provider: true
     }
   })
 
@@ -36,6 +37,8 @@ export default async function getToken(req:FastifyRequest) {
     throw new Error("User not found")
   }
   
+  await CountRequest(appId, "GET")
+
   return {
     status: "success",
     message: "Login successful",
