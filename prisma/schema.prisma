@@ -7,6 +7,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum AdminRole {
+  free
+  basic
+  pro
+}
+
 model admin {
   id             String         @id @default(uuid())
   createdAt      DateTime       @default(now())
@@ -18,6 +24,7 @@ model admin {
   is_active      Boolean        @default(true)
   email_verified Boolean        @default(false)
   last_login_at  DateTime?
+  role           AdminRole      @default(free)
   app_providers  app_provider[] // 1:N, um admin pode ter vários apps
 }
 
