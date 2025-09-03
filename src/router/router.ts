@@ -30,6 +30,6 @@ export default async function CreateRouter(app:FastifyInstance) {
   // router to clientes
   app.post("/v1/auth/create", { preHandler: verifyAppExist },  CreateUserApp)
   app.post("/v1/auth/login", { preHandler: verifyAppExist }, LoginUserApp)
-  app.get("/v1/token", getToken)
+  app.get("/v1/token", { preHandler: verifyAppExist }, getToken)
   // refresh token 
 } 

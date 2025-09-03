@@ -6,7 +6,7 @@ import { prisma } from "../../../config/prisma";
 import CountRequest from "../../../middleware/features/count-request";
 export default async function getToken(req:FastifyRequest) {
 
-  const token :any = req.headers["jwt"];
+  const token:any = req.headers["jwt"];
   const appId:any = req.headers["app-id"];
 
   const descryptToken:any = jwt.verify(token, jwt_secret())
