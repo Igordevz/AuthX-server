@@ -34,11 +34,12 @@ export async function VerifyAdminUser(
       id: descryptToken?.userId,
     },
     include: {
-      app_provider:true
+      app_providers:true
     }
   });
 
-  if(getUser?.app_provider?.id !== appId ) {
+  const hasAccess = getUser?.app_providers?.some((app: any) => app.id === appId);
+  if(!hasAccess) {
     return reply.status(404).send({ error: "You are not allowed to do this" });
   }
 }

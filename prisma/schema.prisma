@@ -17,15 +17,15 @@ model admin {
   id             String         @id @default(uuid())
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt()
-  private_key    String?
   name           String
   email          String         @unique
   password_hash  String
   is_active      Boolean        @default(true)
   email_verified Boolean        @default(false)
   last_login_at  DateTime?
+  limit_of_days  Int            @default(100)
   role           AdminRole      @default(free)
-  app_providers  app_provider[] // 1:N, um admin pode ter vários apps
+  app_providers  app_provider[]
 }
 
 model app_provider {

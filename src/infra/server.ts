@@ -6,6 +6,7 @@ const app = fastify({
   logger: false, 
 });
 
+// Register CORS
 app.register(fastifyCors, {
   origin: "*",
   credentials: true,
@@ -13,6 +14,7 @@ app.register(fastifyCors, {
   allowedHeaders: ["Content-Type", "Authorization", "jwt", "*"],
 });
 
+// Register routes
 app.register(CreateRouter);
 
 app.listen({

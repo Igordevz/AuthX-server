@@ -1,0 +1,385 @@
+openapi: 3.0.3
+info:
+  title: AuthX API
+  description: |
+    Sistema completo de autenticação para aplicações clientes.
+    
+    ## Autenticação
+    Todas as rotas requerem headers `app-id` e `public-key` para autenticação.
+    
+    ## Rate Limiting
+    - **Free**: 100 requests/semana
+    - **Basic**: 1.000 requests/semana  
+    - **Pro**: 10.000 requests/semana
+    
+    O contador é resetado automaticamente a cada 7 dias.
+  version: 1.0.0
+  contact:
+    name: AuthX Support
+    email: suporte@authx.com
+    url: https://docs.authx.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://sua-api.com
+    description: Servidor de Produção
+  - url: https://staging-api.com
+    description: Servidor de Staging
+
+security:
+  - AppAuth: []
+
+paths:
+  /v1/auth/create:
+    post:
+      summary: Criar Usuário
+      description: Cria um novo usuário no sistema de autenticação
+      operationId: createUser
+      tags:
+        - Autenticação
+      security:
+        - AppAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+            examples:
+              example1:
+                summary: Exemplo de criação de usuário
+                value:
+                  name: "João Silva"
+                  email: "joao@exemplo.com"
+                  password: "minhasenha123"
+      responses:
+        '201':
+          description: Usuário criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateUserResponse'
+              examples:
+                success:
+                  summary: Resposta de sucesso
+                  value:
+                    status: "success"
+                    message: "User created successfully"
+                    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        '400':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                validation_error:
+                  summary: Erro de validação
+                  value:
+                    error: "Name is required"
+        '409':
+          description: Email já existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                email_exists:
+                  summary: Email já cadastrado
+                  value:
+                    error: "User already exists with this email"
+        '429':
+          description: Limite de requests excedido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                rate_limit:
+                  summary: Rate limit excedido
+                  value:
+                    error: "Weekly request limit of 100 reached for free plan"
+
+  /v1/auth/login:
+    post:
+      summary: Login
+      description: Autentica um usuário existente e retorna um token JWT
+      operationId: loginUser
+      tags:
+        - Autenticação
+      security:
+        - AppAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              example1:
+                summary: Exemplo de login
+                value:
+                  email: "joao@exemplo.com"
+                  password: "minhasenha123"
+      responses:
+        '200':
+          description: Login realizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+              examples:
+                success:
+                  summary: Login bem-sucedido
+                  value:
+                    status: "success"
+                    message: "Login successful"
+                    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        '400':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Credenciais inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalid_credentials:
+                  summary: Credenciais inválidas
+                  value:
+                    error: "Invalid email or password"
+        '429':
+          description: Limite de requests excedido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/token:
+    get:
+      summary: Obter Dados do Usuário
+      description: Retorna os dados do usuário autenticado usando o token JWT
+      operationId: getUserData
+      tags:
+        - Autenticação
+      security:
+        - AppAuth: []
+        - JWT: []
+      responses:
+        '200':
+          description: Dados do usuário obtidos com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDataResponse'
+              examples:
+                success:
+                  summary: Dados do usuário
+                  value:
+                    status: "success"
+                    message: "Login successful"
+                    token:
+                      id: "uuid-do-usuario"
+                      name: "João Silva"
+                      email: "joao@exemplo.com"
+                      email_verified: false
+                      is_active: true
+                      createdAt: "2024-01-15T10:30:00.000Z"
+                      last_login_at: "2024-01-15T14:20:00.000Z"
+                      updatedAt: "2024-01-15T14:20:00.000Z"
+        '401':
+          description: Token inválido ou expirado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalid_token:
+                  summary: Token inválido
+                  value:
+                    error: "Invalid token"
+                user_not_found:
+                  summary: Usuário não encontrado
+                  value:
+                    error: "User not found"
+        '429':
+          description: Limite de requests excedido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    AppAuth:
+      type: apiKey
+      in: header
+      name: app-id
+      description: ID da aplicação
+    PublicKey:
+      type: apiKey
+      in: header
+      name: public-key
+      description: Chave pública da aplicação
+    JWT:
+      type: apiKey
+      in: header
+      name: jwt
+      description: Token JWT do usuário autenticado
+
+  schemas:
+    CreateUserRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: Nome completo do usuário
+          example: "João Silva"
+        email:
+          type: string
+          format: email
+          description: Email do usuário
+          example: "joao@exemplo.com"
+        password:
+          type: string
+          minLength: 8
+          description: Senha do usuário (mínimo 8 caracteres)
+          example: "minhasenha123"
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: Email do usuário
+          example: "joao@exemplo.com"
+        password:
+          type: string
+          minLength: 8
+          description: Senha do usuário
+          example: "minhasenha123"
+
+    CreateUserResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [success]
+          example: "success"
+        message:
+          type: string
+          example: "User created successfully"
+        token:
+          type: string
+          description: Token JWT do usuário criado
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    LoginResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [success]
+          example: "success"
+        message:
+          type: string
+          example: "Login successful"
+        token:
+          type: string
+          description: Token JWT do usuário
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    UserDataResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [success]
+          example: "success"
+        message:
+          type: string
+          example: "Login successful"
+        token:
+          $ref: '#/components/schemas/User'
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ID único do usuário
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        name:
+          type: string
+          description: Nome do usuário
+          example: "João Silva"
+        email:
+          type: string
+          format: email
+          description: Email do usuário
+          example: "joao@exemplo.com"
+        email_verified:
+          type: boolean
+          description: Status de verificação do email
+          example: false
+        is_active:
+          type: boolean
+          description: Status ativo do usuário
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          description: Data de criação do usuário
+          example: "2024-01-15T10:30:00.000Z"
+        last_login_at:
+          type: string
+          format: date-time
+          description: Data do último login
+          example: "2024-01-15T14:20:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Data da última atualização
+          example: "2024-01-15T14:20:00.000Z"
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Mensagem de erro
+          example: "Invalid email or password"
+
+  examples:
+    CreateUserExample:
+      summary: Exemplo de criação de usuário
+      value:
+        name: "João Silva"
+        email: "joao@exemplo.com"
+        password: "minhasenha123"
+
+    LoginExample:
+      summary: Exemplo de login
+      value:
+        email: "joao@exemplo.com"
+        password: "minhasenha123"
+
+tags:
+  - name: Autenticação
+    description: Operações de autenticação de usuários
