@@ -1,13 +1,4 @@
-import { jest } from '@jest/globals';
 import getToken from './get-token.controller';
-import { prisma } from '../../../config/prisma';
-import jwt from 'jsonwebtoken';
-import CountRequest from '../../../middleware/features/count-request';
-
-// Mock das dependências
-const mockPrisma = prisma as jest.Mocked<typeof prisma>;
-const mockJwt = jwt as jest.Mocked<typeof jwt>;
-const mockCountRequest = CountRequest as jest.MockedFunction<typeof CountRequest>;
 
 describe('getToken Controller', () => {
   const mockRequest = {
@@ -34,19 +25,21 @@ describe('getToken Controller', () => {
         last_login_at: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
-        password_hash: 'hashedPassword'
+        password_hash: 'hashedPassword',
+        secret_key: null,
+        email_verification_token: null
       };
 
-      mockJwt.verify.mockReturnValue(mockDecodedToken);
-      mockPrisma.users_app.findUnique.mockResolvedValue(mockUser);
-      mockCountRequest.mockResolvedValue(undefined);
+      (require('jsonwebtoken').verify as jest.Mock).mockReturnValue(mockDecodedToken);
+      (require('../../../config/prisma').prisma.users_app.findUnique as jest.Mock).mockResolvedValue(mockUser);
+      (require('../../../middleware/features/count-request').default as jest.Mock).mockResolvedValue(undefined);
 
       // Act
       const result = await getToken(mockRequest);
 
       // Assert
-      expect(mockJwt.verify).toHaveBeenCalledWith('valid-token', expect.any(String));
-      expect(mockPrisma.users_app.findUnique).toHaveBeenCalledWith({
+      expect(require('jsonwebtoken').verify).toHaveBeenCalledWith('valid-token', expect.any(String));
+      expect(require('../../../config/prisma').prisma.users_app.findUnique).toHaveBeenCalledWith({
         where: { id: 'user-id' },
         select: {
           id: true,
@@ -60,7 +53,7 @@ describe('getToken Controller', () => {
           password_hash: true,
         }
       });
-      expect(mockCountRequest).toHaveBeenCalledWith('app-id-123', 'GET');
+      expect(require('../../../middleware/features/count-request').default).toHaveBeenCalledWith('app-id-123', 'GET');
       expect(result).toEqual({
         status: 'success',
         message: 'Login successful',
@@ -72,7 +65,7 @@ describe('getToken Controller', () => {
   describe('Error cases', () => {
     it('should throw error when token is invalid', async () => {
       // Arrange
-      mockJwt.verify.mockImplementation(() => {
+      (require('jsonwebtoken').verify as jest.Mock).mockImplementation(() => {
         throw new Error('Invalid token');
       });
 
@@ -80,25 +73,25 @@ describe('getToken Controller', () => {
       await expect(getToken(mockRequest)).rejects.toThrow(
         'Invalid token'
       );
-      expect(mockPrisma.users_app.findUnique).not.toHaveBeenCalled();
+      expect(require('../../../config/prisma').prisma.users_app.findUnique).not.toHaveBeenCalled();
     });
 
     it('should throw error when decoded token is null', async () => {
       // Arrange
-      mockJwt.verify.mockReturnValue(null);
+      (require('jsonwebtoken').verify as jest.Mock).mockReturnValue(null);
 
       // Act & Assert
       await expect(getToken(mockRequest)).rejects.toThrow(
         'Invalid token'
       );
-      expect(mockPrisma.users_app.findUnique).not.toHaveBeenCalled();
+      expect(require('../../../config/prisma').prisma.users_app.findUnique).not.toHaveBeenCalled();
     });
 
     it('should throw error when user is not found', async () => {
       // Arrange
       const mockDecodedToken = { userId: 'non-existent-user' };
-      mockJwt.verify.mockReturnValue(mockDecodedToken);
-      mockPrisma.users_app.findUnique.mockResolvedValue(null);
+      (require('jsonwebtoken').verify as jest.Mock).mockReturnValue(mockDecodedToken);
+      (require('../../../config/prisma').prisma.users_app.findUnique as jest.Mock).mockResolvedValue(null);
 
       // Act & Assert
       await expect(getToken(mockRequest)).rejects.toThrow(

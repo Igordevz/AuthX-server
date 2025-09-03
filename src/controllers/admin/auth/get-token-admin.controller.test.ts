@@ -1,11 +1,4 @@
-import { jest } from '@jest/globals';
 import GetTokenAdmin from './get-token-admin.controller';
-import { prisma } from '../../../config/prisma';
-import jwt from 'jsonwebtoken';
-
-// Mock das dependências
-const mockPrisma = prisma as jest.Mocked<typeof prisma>;
-const mockJwt = jwt as jest.Mocked<typeof jwt>;
 
 describe('GetTokenAdmin Controller', () => {
   const mockRequest = {
@@ -31,6 +24,9 @@ describe('GetTokenAdmin Controller', () => {
         last_login_at: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
+        password_hash: 'hashedPassword',
+        limit_of_days: 30,
+        role: 'ADMIN' as any,
         app_providers: [
           {
             id: 'app-id',
@@ -41,15 +37,15 @@ describe('GetTokenAdmin Controller', () => {
         ]
       };
 
-      mockJwt.verify.mockReturnValue(mockDecodedToken);
-      mockPrisma.admin.findUnique.mockResolvedValue(mockUser);
+      (require('jsonwebtoken').verify as jest.Mock).mockReturnValue(mockDecodedToken);
+      (require('../../../config/prisma').prisma.admin.findUnique as jest.Mock).mockResolvedValue(mockUser);
 
       // Act
       const result = await GetTokenAdmin(mockRequest);
 
       // Assert
-      expect(mockJwt.verify).toHaveBeenCalledWith('valid-token', expect.any(String));
-      expect(mockPrisma.admin.findUnique).toHaveBeenCalledWith({
+      expect(require('jsonwebtoken').verify).toHaveBeenCalledWith('valid-token', expect.any(String));
+      expect(require('../../../config/prisma').prisma.admin.findUnique).toHaveBeenCalledWith({
         where: { id: 'user-id' },
         select: {
           id: true,
@@ -89,7 +85,7 @@ describe('GetTokenAdmin Controller', () => {
       await expect(GetTokenAdmin(requestWithoutToken)).rejects.toThrow(
         'Token not provided or invalid'
       );
-      expect(mockJwt.verify).not.toHaveBeenCalled();
+      expect(require('jsonwebtoken').verify).not.toHaveBeenCalled();
     });
 
     it('should throw error when token is not a string', async () => {
@@ -104,12 +100,12 @@ describe('GetTokenAdmin Controller', () => {
       await expect(GetTokenAdmin(requestWithInvalidToken)).rejects.toThrow(
         'Token not provided or invalid'
       );
-      expect(mockJwt.verify).not.toHaveBeenCalled();
+      expect(require('jsonwebtoken').verify).not.toHaveBeenCalled();
     });
 
     it('should throw error when token is invalid or expired', async () => {
       // Arrange
-      mockJwt.verify.mockImplementation(() => {
+      (require('jsonwebtoken').verify as jest.Mock).mockImplementation(() => {
         throw new Error('Invalid token');
       });
 
@@ -117,14 +113,14 @@ describe('GetTokenAdmin Controller', () => {
       await expect(GetTokenAdmin(mockRequest)).rejects.toThrow(
         'Invalid or expired token'
       );
-      expect(mockPrisma.admin.findUnique).not.toHaveBeenCalled();
+      expect(require('../../../config/prisma').prisma.admin.findUnique).not.toHaveBeenCalled();
     });
 
     it('should throw error when user is not found', async () => {
       // Arrange
       const mockDecodedToken = { userId: 'non-existent-user' };
-      mockJwt.verify.mockReturnValue(mockDecodedToken);
-      mockPrisma.admin.findUnique.mockResolvedValue(null);
+      (require('jsonwebtoken').verify as jest.Mock).mockReturnValue(mockDecodedToken);
+      (require('../../../config/prisma').prisma.admin.findUnique as jest.Mock).mockResolvedValue(null);
 
       // Act & Assert
       await expect(GetTokenAdmin(mockRequest)).rejects.toThrow(
