@@ -93,5 +93,6 @@ export default async function GetDashboardData(req: FastifyRequest) {
       usersByApp: usersByApp,
       emailVerification: emailVerificationStats,
     },
+    bruteData: adminData,
   };
 }
