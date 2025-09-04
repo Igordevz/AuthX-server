@@ -21,6 +21,12 @@ module.exports = {
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
+  moduleNameMapper: {
+    '^\\.\\./\\.\\./config/prisma$': '<rootDir>/tests/__mocks__/prisma.ts',
+    '^\\.\\./\\.\\./\\.\\./config/prisma$': '<rootDir>/tests/__mocks__/prisma.ts',
+    '^\\.\\./\\.\\./middleware/features/count-request$': '<rootDir>/tests/__mocks__/count-request.ts',
+    '^\\.\\./\\.\\./\\.\\./middleware/features/count-request$': '<rootDir>/tests/__mocks__/count-request.ts'
+  },
 
   testTimeout: 10000
 };
