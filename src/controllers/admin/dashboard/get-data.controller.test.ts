@@ -72,21 +72,22 @@ describe('GetDashboardData Controller', () => {
 
       expect(result).toEqual({
         metrics: {
-          active_projects: 2,
-          total_users: 4,
-          total_api_usage: 300,
-          usage_today: 30,
+          maxRequests: expect.any(Number),
+          activeProjects: 2,
+          totalUsers: 4,
+          totalApiCalls: 300,
+          apiCallsToday: 30,
         },
         charts: {
-          api_usage_by_app: [
-            { name_app: 'App 1', api_calls: 100 },
-            { name_app: 'App 2', api_calls: 200 }
+          apiUsageByApp: [
+            { appName: 'App 1', apiCalls: 100 },
+            { appName: 'App 2', apiCalls: 200 }
           ],
-          users_by_app: [
-            { name_app: 'App 1', total_users: 2 },
-            { name_app: 'App 2', total_users: 2 }
+          usersByApp: [
+            { appName: 'App 1', userCount: 2 },
+            { appName: 'App 2', userCount: 2 }
           ],
-          email_verification: {
+          emailVerification: {
             verified: 3,
             unverified: 1,
           },
@@ -121,15 +122,16 @@ describe('GetDashboardData Controller', () => {
       // Assert
       expect(result).toEqual({
         metrics: {
-          active_projects: 0,
-          total_users: 0,
-          total_api_usage: 0,
-          usage_today: 0,
+          maxRequests: expect.any(Number),
+          activeProjects: 0,
+          totalUsers: 0,
+          totalApiCalls: 0,
+          apiCallsToday: 0,
         },
         charts: {
-          api_usage_by_app: [],
-          users_by_app: [],
-          email_verification: {
+          apiUsageByApp: [],
+          usersByApp: [],
+          emailVerification: {
             verified: 0,
             unverified: 0,
           },

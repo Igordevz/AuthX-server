@@ -17,6 +17,12 @@ export default async function GetDashboardData(req: FastifyRequest) {
     throw new Error("Invalid or expired token");
   }
 
+  const ROLE_LIMITS = {
+    free: 100,
+    basic: 1000,
+    pro: 10000,
+  } as const;
+  
   const adminData = await prisma.admin.findUnique({
     where: { id: decodedToken?.userId },
     include: {
@@ -27,7 +33,9 @@ export default async function GetDashboardData(req: FastifyRequest) {
       },
     },
   });
-
+  const weeklyLimit =
+    ROLE_LIMITS[adminData?.role as keyof typeof ROLE_LIMITS] ?? 0;
+  
   if (!adminData) {
     throw new Error("Admin not found");
   }
@@ -38,24 +46,24 @@ export default async function GetDashboardData(req: FastifyRequest) {
     (acc, provider) => acc + (provider.users?.length || 0),
     0
   );
-  const totalApiUsage = adminData.app_providers.reduce(
+  const totalApiCalls = adminData.app_providers.reduce(
     (acc, provider) => acc + (provider.api_calls || 0),
     0
   );
-  const usageToday = adminData.app_providers.reduce(
+  const apiCallsToday = adminData.app_providers.reduce(
     (acc, provider) => acc + (provider.count_usage || 0),
     0
   );
 
   // Dados para gráficos
   const apiUsageByApp = adminData.app_providers.map((app) => ({
-    name_app: app.name_app,
-    api_calls: app.api_calls || 0,
+    appName: app.name_app,
+    apiCalls: app.api_calls || 0,
   }));
 
   const usersByApp = adminData.app_providers.map((app) => ({
-    name_app: app.name_app,
-    total_users: app.users.length,
+    appName: app.name_app,
+    userCount: app.users.length,
   }));
 
   const emailVerificationStats = {
@@ -71,17 +79,19 @@ export default async function GetDashboardData(req: FastifyRequest) {
     ),
   };
 
+
   return {
     metrics: {
-      active_projects: activeProjects,
-      total_users: totalUsers,
-      total_api_usage: totalApiUsage,
-      usage_today: usageToday,
+      maxRequests: weeklyLimit,
+      activeProjects: activeProjects,
+      totalUsers: totalUsers,
+      totalApiCalls: totalApiCalls,
+      apiCallsToday: apiCallsToday,
     },
     charts: {
-      api_usage_by_app: apiUsageByApp,
-      users_by_app: usersByApp,
-      email_verification: emailVerificationStats,
+      apiUsageByApp: apiUsageByApp,
+      usersByApp: usersByApp,
+      emailVerification: emailVerificationStats,
     },
   };
 }
