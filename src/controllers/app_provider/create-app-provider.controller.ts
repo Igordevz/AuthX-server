@@ -8,13 +8,14 @@ import { jwt_secret } from "../../config/jwt";
 export default async function CreateAppProvider(req: FastifyRequest, reply: FastifyReply) {
   const CreateAppProviderSchema = z.object({
     name_app: z.string().min(1, "Project name is required"),
+    description: z.string().min(1, "Description is required"),
   });
 
   if (!req.body) {
     return reply.status(400).send({ error: "Body is required" });
   }
 
-  const { name_app } = CreateAppProviderSchema.parse(req.body);
+  const { name_app, description} = CreateAppProviderSchema.parse(req.body);
 
   const token = req.headers["jwt"];
   if (!token || typeof token !== "string") {
@@ -42,6 +43,7 @@ export default async function CreateAppProvider(req: FastifyRequest, reply: Fast
     newApp = await prisma.app_provider.create({
       data: {
         name_app,
+        description,
         owner_email: admin.email,
         public_key: publicKey,
         secret_key: secretKey,
