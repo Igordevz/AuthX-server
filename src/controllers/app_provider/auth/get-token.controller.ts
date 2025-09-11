@@ -6,8 +6,9 @@ import { prisma } from "../../../config/prisma";
 import CountRequest from "../../../middleware/features/count-request";
 export default async function getToken(req:FastifyRequest) {
 
+  const public_key:any = req.headers["public-key"]; 
   const token:any = req.headers["jwt"];
-  const appId:any = req.headers["app-id"];
+
 
   const descryptToken:any = jwt.verify(token, jwt_secret())
 
@@ -37,7 +38,7 @@ export default async function getToken(req:FastifyRequest) {
     throw new Error("User not found")
   }
   
-  await CountRequest(appId, "GET")
+  await CountRequest(public_key, "GET") // Changed appId to public_key
 
   return {
     status: "success",

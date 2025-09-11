@@ -25,7 +25,6 @@ model admin {
 model app_provider {
   id            String      @id @default(cuid())
   public_key    String      @unique
-  secret_key    String      @unique
   description   String?
   name_app      String
   owner_email   String
@@ -40,12 +39,13 @@ model app_provider {
 
 model users_app {
   id                       String        @id @default(uuid())
-  app_provider             app_provider? @relation(fields: [secret_key], references: [secret_key])
-  secret_key               String?
+  app_provider             app_provider? @relation(fields: [public_key], references: [public_key])
+  public_key               String?
   createdAt                DateTime      @default(now())
   updatedAt                DateTime      @updatedAt()
   name                     String
-  email                    String        @unique
+  email                    String
+  @@unique([email, public_key])
   password_hash            String
   is_active                Boolean       @default(true)
   email_verification_token String?

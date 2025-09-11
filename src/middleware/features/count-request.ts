@@ -11,7 +11,7 @@ export default async function CountRequest(id: string, def: string) {
   if (!appId) throw new Error("App ID is required");
 
   const validateApp: any = await prisma.app_provider.findUnique({
-    where: { id: appId },
+    where: { public_key: appId },
     select: { 
       count_usage: true,
       last_reset_at: true,
@@ -33,7 +33,7 @@ export default async function CountRequest(id: string, def: string) {
   const weeklyLimit = ROLE_LIMITS[adminRole];
   
   const actualLimit = Math.min(weeklyLimit, limitOfDays);
-
+ 
   const now = new Date();
   const lastReset = new Date(validateApp.last_reset_at);
   
@@ -44,26 +44,29 @@ export default async function CountRequest(id: string, def: string) {
   if (daysDifference >= 7) {
     currentUsage = 0;
     await prisma.app_provider.update({
-      where: { id: appId },
+      where: { public_key: appId },
       data: { count_usage: 0, last_reset_at: new Date() },
     });
   }
 
   const usageMap: Record<string, number> = {
-    DELETE: 0.8,
+    DELETE: 4,
     CREATE: 2,
-    GET: 0.4,
-    LOGIN: 0.6,
+    GET: 1,
+    LOGIN: 2,
   };
 
   const usageCost = usageMap[def] || 0;
 
+  console.log(currentUsage)
   if (currentUsage + usageCost > actualLimit) {
     throw new Error(`Weekly request limit of ${actualLimit} reached for ${adminRole} plan`);
   }
 
+  console.log(currentUsage + usageCost);
+  
   await prisma.app_provider.update({
-    where: { id: appId },
+    where: { public_key: appId },
     data: {
       count_usage: currentUsage + usageCost,
       api_calls: validateApp.api_calls + 1,

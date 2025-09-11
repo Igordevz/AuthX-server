@@ -3,7 +3,7 @@ import CreateAppProvider from "../controllers/app_provider/create-app-provider.c
 import RemoveApp from "../controllers/app_provider/remove-app.controller";
 import CreateUserApp from "../controllers/app_provider/auth/create-user.controller";
 import LoginUserApp from "../controllers/app_provider/auth/login.controller";
-import { verifyAppExist } from "../middleware/veirify-app-exist";
+import { verifyKey } from "../middleware/veirify-key";
 import getToken from "../controllers/app_provider/auth/get-token.controller";
 import CreateUserAdmin from "../controllers/admin/auth/create-admin.controller";
 import LoginAdmin from "../controllers/admin/auth/login-admin.controller";
@@ -28,8 +28,8 @@ export default async function CreateRouter(app:FastifyInstance) {
   app.get("/dashboard", GetData)
 
   // router to clientes
-  app.post("/v1/auth/create", { preHandler: verifyAppExist },  CreateUserApp)
-  app.post("/v1/auth/login", { preHandler: verifyAppExist }, LoginUserApp)
-  app.get("/v1/token", { preHandler: verifyAppExist }, getToken)
+  app.post("/v1/auth/create", { preHandler: verifyKey },  CreateUserApp)
+  app.post("/v1/auth/login", { preHandler: verifyKey }, LoginUserApp)
+  app.get("/v1/token", getToken)
   // refresh token 
 } 

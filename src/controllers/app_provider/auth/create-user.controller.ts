@@ -7,7 +7,7 @@ import { jwt_secret } from "../../../config/jwt";
 import CountRequest from "../../../middleware/features/count-request";
 export default async function CreateUserApp(req: FastifyRequest) {
 
-  const appId:any = req.headers["app-id"];
+  const public_key:any = req.headers["public-key"];
 
   const userSchemaApp = z.object({
     name: z.string().min(1, "Name is required"),
@@ -20,14 +20,15 @@ export default async function CreateUserApp(req: FastifyRequest) {
   const salt = await bcrypt.genSalt(12);
   const passwordHash = await bcrypt.hash(password, salt);
 
-  const existUser = await prisma.users_app.findUnique({
+  const existUser = await prisma.users_app.findFirst({
     where: {
       email: email,
+      public_key: public_key
     },
   })
 
   if(existUser){
-    throw new Error("User already exists with this email");
+    throw new Error("User already exists with this email for this app provider");
   }
 
   const createUser = await prisma.users_app.create({
@@ -36,9 +37,9 @@ export default async function CreateUserApp(req: FastifyRequest) {
       email,
       password_hash: passwordHash,
       last_login_at: new Date(),
-        app_provider: {
-          connect: { id: appId }
-        },
+      app_provider: {
+        connect: { public_key: public_key } 
+      },
     },
     select: {
       id: true,
@@ -46,7 +47,7 @@ export default async function CreateUserApp(req: FastifyRequest) {
       createdAt: true,
       email: true,
       email_verified: true,
-      is_active: true, 
+      is_active: true,
       last_login_at: true,
       updatedAt: true
     }
@@ -55,16 +56,13 @@ export default async function CreateUserApp(req: FastifyRequest) {
   if(!createUser){
     throw new Error("Failed to create user");
   }
- 
-  const currentApp:any = await prisma.admin.findUnique({
-    where: { id: appId },
-  })
+
+
   const createToken = jwt.sign({ userId: createUser?.id }, jwt_secret(), {
     expiresIn: "4d",
   });
 
-  await CountRequest(appId, "CREATE");
-
+  await CountRequest(public_key, "CREATE"); 
   return {
     status: "success",
     message: "User created successfully",
