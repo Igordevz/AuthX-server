@@ -46,7 +46,6 @@ export default async function CreateAppProvider(req: FastifyRequest, reply: Fast
         description,
         owner_email: admin.email,
         public_key: publicKey,
-        secret_key: secretKey,
         admin: { connect: { id: admin.id } },
       },
     });
